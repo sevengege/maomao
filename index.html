@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>毛毛得优小计划 ✨</title>
+<style>
+  :root {
+    --pink: #ff8fb1;
+    --pink-light: #ffe3ec;
+    --purple: #9b7ede;
+    --purple-light: #efe7ff;
+    --yellow: #ffd166;
+    --green: #4ecdc4;
+    --bg: #fdf6f9;
+    --card: #ffffff;
+    --text: #4a3b52;
+    --text-light: #8d7f97;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .container { max-width: 760px; margin: 0 auto; }
+
+  /* 头部 */
+  .hero {
+    background: linear-gradient(135deg, #ff9a9e 0%, #a18cd1 100%);
+    border-radius: 24px;
+    padding: 32px 28px;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(161, 140, 209, 0.35);
+    margin-bottom: 20px;
+  }
+  .hero h1 { font-size: 30px; margin-bottom: 8px; letter-spacing: 2px; }
+  .hero p { opacity: 0.92; font-size: 15px; }
+  .hero .date { margin-top: 12px; font-size: 14px; background: rgba(255,255,255,0.22); display: inline-block; padding: 5px 16px; border-radius: 999px; }
+
+  /* 统计卡 */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 16px 10px;
+    text-align: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+  }
+  .stat-card .num { font-size: 28px; font-weight: 700; }
+  .stat-card .label { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+  .stat-stars .num { color: #f5a623; }
+  .stat-streak .num { color: #ff6b9d; }
+  .stat-done .num { color: var(--green); }
+
+  /* 今日打卡 */
+  .section {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+  }
+  .section h2 {
+    font-size: 19px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section .sub { font-size: 13px; color: var(--text-light); margin-bottom: 16px; }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 14px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  .step:hover { transform: translateY(-2px); }
+  .step:nth-child(odd) { background: var(--pink-light); }
+  .step:nth-child(even) { background: var(--purple-light); }
+  .step.done { border-color: var(--green); background: #e6faf8; }
+  .step .checkbox {
+    width: 30px; height: 30px; min-width: 30px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #ddd;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: transparent;
+    transition: all 0.2s;
+  }
+  .step.done .checkbox { background: var(--green); border-color: var(--green); color: #fff; }
+  .step .content .title { font-weight: 700; font-size: 16px; }
+  .step .content .desc { font-size: 13px; color: var(--text-light); margin-top: 4px; line-height: 1.6; }
+  .step.done .title { text-decoration: line-through; opacity: 0.6; }
+
+  .today-progress { margin-top: 16px; }
+  .progress-bar {
+    height: 14px;
+    background: #f0e6f0;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pink), var(--purple));
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-text { font-size: 13px; color: var(--text-light); margin-top: 8px; text-align: center; }
+
+  /* 错题本 */
+  .wrong-form { display: grid; gap: 10px; }
+  .wrong-form input, .wrong-form select {
+    padding: 12px 14px;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    background: #fafafa;
+  }
+  .wrong-form input:focus, .wrong-form select:focus { border-color: var(--pink); background: #fff; }
+  .wrong-form .row { display: grid; grid-template-columns: 110px 1fr; gap: 10px; }
+  .btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-add {
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(155, 126, 222, 0.35);
+  }
+  .wrong-list { margin-top: 16px; display: grid; gap: 10px; }
+  .wrong-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #faf6ff;
+    border-radius: 12px;
+    border-left: 4px solid var(--purple);
+  }
+  .wrong-item .tag {
+    font-size: 12px;
+    background: var(--purple);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .wrong-item .txt { font-size: 14px; flex: 1; }
+  .wrong-item .del {
+    background: none; border: none; cursor: pointer;
+    font-size: 16px; color: #ccc; padding: 4px;
+  }
+  .wrong-item .del:hover { color: #ff6b6b; }
+  .empty-tip { text-align: center; color: var(--text-light); font-size: 13px; padding: 20px 0; }
+
+  /* 日历 */
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .month-label { font-weight: 700; font-size: 16px; }
+  .cal-nav {
+    background: var(--purple-light); border: none; border-radius: 10px;
+    width: 34px; height: 34px; font-size: 17px; cursor: pointer;
+    color: var(--purple); font-weight: 700; font-family: inherit;
+    transition: background 0.15s;
+  }
+  .cal-nav:hover { background: #e0d2ff; }
+  .cal-week-labels, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-week-labels { margin-bottom: 6px; text-align: center; font-size: 12px; color: var(--text-light); }
+  .cal-cell {
+    aspect-ratio: 1 / 1; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 13px; background: #f7f2f8; color: var(--text-light);
+    position: relative; cursor: pointer; transition: transform 0.12s;
+  }
+  .cal-cell:hover { transform: scale(1.06); }
+  .cal-cell .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 3px; background: #ddd; }
+  .cal-cell.full { background: #e6faf8; color: #1fa99f; font-weight: 700; }
+  .cal-cell.full .dot { background: var(--green); }
+  .cal-cell.part { background: #fff6e0; color: #c98a00; font-weight: 700; }
+  .cal-cell.part .dot { background: var(--yellow); }
+  .cal-cell.today { outline: 2px solid var(--pink); outline-offset: 1px; }
+  .cal-cell.future { opacity: 0.4; cursor: default; }
+  .cal-cell.future:hover { transform: none; }
+  .cal-legend { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 12px; color: var(--text-light); }
+  .cal-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .cal-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .legend-full { background: var(--green); }
+  .legend-part { background: var(--yellow); }
+  .legend-none { background: #ddd; }
+
+  /* 周视图 */
+  .week-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .week-day {
+    background: #faf6ff; border-radius: 12px; padding: 10px 4px 8px;
+    text-align: center;
+  }
+  .week-day .wd { font-size: 12px; color: var(--text-light); }
+  .week-day .num { font-size: 15px; font-weight: 700; margin: 4px 0 6px; }
+  .week-day .bar { height: 6px; background: #ece4f0; border-radius: 999px; overflow: hidden; }
+  .week-day .bar-fill { height: 100%; background: linear-gradient(90deg, var(--pink), var(--purple)); border-radius: 999px; }
+  .week-day .wr { font-size: 11px; color: var(--purple); margin-top: 6px; min-height: 15px; }
+  .week-day.today-w { outline: 2px solid var(--pink); background: var(--pink-light); }
+  .week-day.future-w { opacity: 0.45; }
+  .week-day .st { font-size: 14px; margin-top: 4px; }
+  .week-summary {
+    margin-top: 14px; font-size: 14px; color: var(--text);
+    background: var(--purple-light); border-radius: 12px; padding: 10px 14px; text-align: center;
+  }
+  .week-summary b { color: var(--purple); }
+
+  /* 奖励 */
+  .reward-note {
+    background: linear-gradient(135deg, #fff7e0, #ffe9f0);
+    border-radius: 20px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 2;
+    border: 2px dashed var(--yellow);
+  }
+  .reward-note b { color: #e07a3f; }
+
+  footer { text-align: center; font-size: 12px; color: var(--text-light); margin-top: 10px; }
+
+  /* 庆祝弹层 */
+  .celebrate {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 99;
+  }
+  .celebrate.show { display: flex; }
+  .celebrate .box {
+    background: #fff;
+    border-radius: 24px;
+    padding: 40px 48px;
+    text-align: center;
+    animation: pop 0.4s ease;
+  }
+  @keyframes pop { 0% { transform: scale(0.5); opacity: 0;} 100% { transform: scale(1); opacity: 1;} }
+  .celebrate .emoji { font-size: 56px; }
+  .celebrate h3 { font-size: 22px; margin: 12px 0 6px; color: #ff6b9d; }
+  .celebrate p { color: var(--text-light); font-size: 14px; margin-bottom: 18px; }
+
+  @media (max-width: 520px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .wrong-form .row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <h1>🌸 毛毛得优小计划</h1>
+    <p>每天一小步，错题全弄会，考试稳得优！</p>
+    <div class="date" id="todayDate"></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card stat-stars"><div class="num" id="starCount">⭐ 0</div><div class="label">我的星星</div></div>
+    <div class="stat-card stat-streak"><div class="num" id="streakCount">🔥 0</div><div class="label">连续打卡(天)</div></div>
+    <div class="stat-card stat-done"><div class="num" id="doneDays">✅ 0</div><div class="label">累计完成(天)</div></div>
+  </div>
+
+  <div class="section">
+    <h2>📅 错题攻克日历</h2>
+    <div class="sub">一点一滴都看得见：点某一天，下面就能看到那一周的详细情况</div>
+    <div class="cal-header">
+      <button class="cal-nav" id="calPrev">‹</button>
+      <div class="month-label" id="calMonth"></div>
+      <button class="cal-nav" id="calNext">›</button>
+    </div>
+    <div class="cal-week-labels">
+      <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <span><i class="legend-full"></i>三步全完成</span>
+      <span><i class="legend-part"></i>完成一部分</span>
+      <span><i class="legend-none"></i>还没开始</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🗓️ 每周整理情况</h2>
+    <div class="sub">以周为单位，看看每天完成了几步、记录了几道错题</div>
+    <div class="week-nav">
+      <button class="cal-nav" id="weekPrev">‹</button>
+      <div class="month-label" id="weekLabel" style="font-size:15px;"></div>
+      <button class="cal-nav" id="weekNext">›</button>
+    </div>
+    <div class="week-grid" id="weekGrid"></div>
+    <div class="week-summary" id="weekSummary"></div>
+  </div>
+
+  <div class="section">
+    <h2>📋 今日三步打卡</h2>
+    <div class="sub">每天完成三步，就能点亮今天的星星哦～</div>
+
+    <div class="step" data-step="1">
+      <div class="checkbox">✓</div>
+      <div class="content">
+        <div class="title">第一步：找错题，记进错题本 📝</div>
+        <div class="desc">翻看今天的作业和练习，把不会的题、做错的题找出来，认认真真抄进错题本（写清：题目、错在哪、正确思路）。</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="2">
+      <div class="checkbox">✓</div>
+      <div class="content">
+        <div class="title">第二步：听讲解，弄懂它 🎧</div>
+        <div class="desc">打开洋葱学园或作业帮，找到对应知识点，认真听老师讲解。听完能自己讲一遍，才算真的懂了！</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="3">
+      <div class="checkbox">✓</div>
+      <div class="content">
+        <div class="title">第三步：找同类题，练一练 ✍️</div>
+        <div class="desc">在练习册或 App 里找 2~3 道同知识点的类似题，独立做一遍。做对了，这道错题就算过关！</div>
+      </div>
+    </div>
+
+    <div class="today-progress">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">今天完成了 0 / 3 步</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📔 我的错题记录本</h2>
+    <div class="sub">把今天的错题记在这里，方便复习和追踪～</div>
+    <div class="wrong-form">
+      <div class="row">
+        <select id="wrongSubject">
+          <option value="数学">数学</option>
+          <option value="物理">物理</option>
+          <option value="英语">英语</option>
+          <option value="语文">语文</option>
+          <option value="历史">历史</option>
+          <option value="地理">地理</option>
+          <option value="生物">生物</option>
+          <option value="其他">其他</option>
+        </select>
+        <input type="text" id="wrongDesc" placeholder="错题描述，如：一元二次方程配方题" maxlength="60">
+      </div>
+      <div class="row">
+        <input type="text" id="wrongPoint" placeholder="涉及知识点，如：配方法" maxlength="30">
+        <button class="btn btn-add" onclick="addWrong()">＋ 记录错题</button>
+      </div>
+    </div>
+    <div class="wrong-list" id="wrongList"></div>
+  </div>
+
+  <div class="reward-note">
+    🎁 <b>星星兑换约定（和爸爸妈妈一起定）：</b><br>
+    每完成一天三步打卡 = <b>3 颗星</b>；连续打卡 7 天额外奖励 <b>5 颗星</b>。<br>
+    攒够 <b>20 颗星</b> → 兑换一个小愿望；攒够 <b>60 颗星</b> → 兑换一个大愿望！<br>
+    💡 星星规则可以和爸妈商量调整，重要的是每天都坚持～
+  </div>
+
+  <footer>毛毛得优小计划 · 数据保存在本机浏览器中 · 加油，你是最棒的！💪</footer>
+</div>
+
+<div class="celebrate" id="celebrate" onclick="this.classList.remove('show')">
+  <div class="box">
+    <div class="emoji">🎉</div>
+    <h3>今日打卡完成！</h3>
+    <p>获得 3 颗星星 ⭐ 继续保持，得优没问题！</p>
+    <button class="btn btn-add" onclick="document.getElementById('celebrate').classList.remove('show')">太棒了！</button>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'maomao_plan_v1';
+
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  function loadData() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch(e) { return {}; }
+  }
+  function saveData(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  let data = loadData();
+  if (!data[todayStr()]) data[todayStr()] = { steps: [false,false,false] };
+  if (!data.__wrong) data.__wrong = [];
+  if (!data.__stats) data.__stats = { stars: 0, streak: 0, doneDays: 0, lastStreakDate: null };
+
+  function renderSteps() {
+    const today = data[todayStr()];
+    document.querySelectorAll('.step').forEach(el => {
+      const idx = parseInt(el.dataset.step) - 1;
+      el.classList.toggle('done', today.steps[idx]);
+    });
+    const doneCount = today.steps.filter(Boolean).length;
+    document.getElementById('progressFill').style.width = (doneCount/3*100) + '%';
+    document.getElementById('progressText').textContent = '今天完成了 ' + doneCount + ' / 3 步';
+  }
+
+  function renderStats() {
+    const s = data.__stats;
+    document.getElementById('starCount').textContent = '⭐ ' + s.stars;
+    document.getElementById('streakCount').textContent = '🔥 ' + s.streak;
+    document.getElementById('doneDays').textContent = '✅ ' + s.doneDays;
+  }
+
+  function renderWrong() {
+    const list = document.getElementById('wrongList');
+    const items = data.__wrong;
+    if (!items.length) {
+      list.innerHTML = '<div class="empty-tip">还没有记录哦，今天有错题就快来记下吧 📝</div>';
+      return;
+    }
+    list.innerHTML = items.slice().reverse().map((w, i) => {
+      const idx = items.length - 1 - i;
+      return '<div class="wrong-item">' +
+        '<span class="tag">' + w.subject + '</span>' +
+        '<span class="txt">' + esc(w.desc) + (w.point ? ' <small style="color:#8d7f97">（' + esc(w.point) + '）</small>' : '') +
+        '<small style="color:#b9aec2"> · ' + w.date + '</small></span>' +
+        '<button class="del" onclick="delWrong(' + idx + ')" title="删除">✕</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  document.querySelectorAll('.step').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.step) - 1;
+      const today = data[todayStr()];
+      today.steps[idx] = !today.steps[idx];
+      const s = data.__stats;
+
+      if (today.steps.every(Boolean) && !today.rewarded) {
+        today.rewarded = true;
+        s.stars += 3;
+        s.doneDays += 1;
+        // 连续打卡：上次完成是昨天则 +1，否则重置为 1
+        const yest = new Date(); yest.setDate(yest.getDate() - 1);
+        const yestStr = yest.getFullYear() + '-' + String(yest.getMonth()+1).padStart(2,'0') + '-' + String(yest.getDate()).padStart(2,'0');
+        if (s.lastStreakDate === yestStr) s.streak += 1;
+        else s.streak = 1;
+        s.lastStreakDate = todayStr();
+        // 连续 7 天额外奖励
+        if (s.streak > 0 && s.streak % 7 === 0) s.stars += 5;
+        document.getElementById('celebrate').classList.add('show');
+      }
+      saveData(data);
+      renderSteps(); renderStats(); renderCalendar(); renderWeek();
+    });
+  });
+
+  function addWrong() {
+    const desc = document.getElementById('wrongDesc').value.trim();
+    if (!desc) { document.getElementById('wrongDesc').focus(); return; }
+    data.__wrong.push({
+      subject: document.getElementById('wrongSubject').value,
+      desc: desc,
+      point: document.getElementById('wrongPoint').value.trim(),
+      date: todayStr()
+    });
+    saveData(data);
+    document.getElementById('wrongDesc').value = '';
+    document.getElementById('wrongPoint').value = '';
+    renderWrong(); renderCalendar(); renderWeek();
+  }
+
+  function delWrong(idx) {
+    data.__wrong.splice(idx, 1);
+    saveData(data);
+    renderWrong(); renderCalendar(); renderWeek();
+  }
+
+  // ---------- 日历 ----------
+  function dateKey(y, m, d) {
+    return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+  }
+  function stepsDoneOn(key) {
+    const rec = data[key];
+    if (!rec || !rec.steps) return 0;
+    return rec.steps.filter(Boolean).length;
+  }
+
+  let calYear, calMonth;
+  function initCalendar() {
+    const d = new Date();
+    calYear = d.getFullYear(); calMonth = d.getMonth();
+  }
+
+  function renderCalendar() {
+    document.getElementById('calMonth').textContent = calYear + ' 年 ' + (calMonth + 1) + ' 月';
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+    const todayK = todayStr();
+    const now = new Date(); now.setHours(0,0,0,0);
+
+    const first = new Date(calYear, calMonth, 1);
+    const startDow = (first.getDay() + 6) % 7; // 周一 = 0
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+    for (let i = 0; i < startDow; i++) {
+      const pad = document.createElement('div');
+      pad.style.background = 'transparent';
+      grid.appendChild(pad);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dateKey(calYear, calMonth, d);
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell';
+      cell.innerHTML = '<span>' + d + '</span><span class="dot"></span>';
+
+      const cellDate = new Date(calYear, calMonth, d);
+      if (cellDate > now) {
+        cell.classList.add('future');
+      } else {
+        const done = stepsDoneOn(key);
+        if (done === 3) cell.classList.add('full');
+        else if (done >= 1) cell.classList.add('part');
+        cell.title = key + '：完成 ' + done + '/3 步，记录错题 ' + wrongCountOn(key) + ' 题';
+        cell.addEventListener('click', () => setWeekByDate(key));
+      }
+      if (key === todayK) cell.classList.add('today');
+      grid.appendChild(cell);
+    }
+  }
+
+  document.getElementById('calPrev').addEventListener('click', () => {
+    calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+  });
+  document.getElementById('calNext').addEventListener('click', () => {
+    calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  });
+
+  // ---------- 周视图 ----------
+  let weekOffset = 0; // 0 = 本周，1 = 上周...
+
+  function mondayOf(offset) {
+    const d = new Date(); d.setHours(0,0,0,0);
+    const dow = (d.getDay() + 6) % 7;
+    d.setDate(d.getDate() - dow - offset * 7);
+    return d;
+  }
+
+  function setWeekByDate(key) {
+    const [y, m, d] = key.split('-').map(Number);
+    const target = new Date(y, m - 1, d);
+    const monday = mondayOf(0);
+    const diffDays = Math.round((monday - target) / 86400000);
+    weekOffset = Math.max(0, Math.round(diffDays / 7));
+    renderWeek();
+    document.getElementById('weekGrid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function wrongCountOn(key) {
+    return (data.__wrong || []).filter(w => w.date === key).length;
+  }
+
+  function renderWeek() {
+    const monday = mondayOf(weekOffset);
+    const sun = new Date(monday); sun.setDate(sun.getDate() + 6);
+    document.getElementById('weekLabel').textContent =
+      (monday.getMonth() + 1) + '月' + monday.getDate() + ' 日 ~ ' + (sun.getMonth() + 1) + '月' + sun.getDate() + ' 日' +
+      (weekOffset === 0 ? '（本周）' : '');
+
+    const grid = document.getElementById('weekGrid');
+    grid.innerHTML = '';
+    const wds = ['周一','周二','周三','周四','周五','周六','周日'];
+    const now = new Date(); now.setHours(0,0,0,0);
+    const todayK = todayStr();
+    let fullDays = 0, partDays = 0, wrongTotal = 0;
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+      const done = stepsDoneOn(key);
+      const wc = wrongCountOn(key);
+      wrongTotal += wc;
+      if (done === 3) fullDays++;
+      else if (done >= 1) partDays++;
+
+      const card = document.createElement('div');
+      card.className = 'week-day';
+      if (key === todayK) card.classList.add('today-w');
+      if (d > now) card.classList.add('future-w');
+
+      const stEmoji = done === 3 ? '🌟' : done >= 1 ? '⛅' : (d > now ? '' : '💤');
+      card.innerHTML =
+        '<div class="wd">' + wds[i] + '</div>' +
+        '<div class="num">' + (d.getMonth() + 1) + '/' + d.getDate() + '</div>' +
+        '<div class="bar"><div class="bar-fill" style="width:' + (done / 3 * 100) + '%"></div></div>' +
+        '<div class="st">' + stEmoji + '</div>' +
+        '<div class="wr">' + (wc > 0 ? '✍ ' + wc + ' 题' : '') + '</div>';
+      card.title = key + '：完成 ' + done + '/3 步，记录错题 ' + wc + ' 题';
+      grid.appendChild(card);
+    }
+
+    const summary = document.getElementById('weekSummary');
+    if (fullDays + partDays === 0 && wrongTotal === 0) {
+      summary.innerHTML = '这一周还没有打卡记录，从今天开始加油吧！💪';
+    } else {
+      summary.innerHTML =
+        '本周：完整打卡 <b>' + fullDays + '</b> 天 · 部分完成 <b>' + partDays + '</b> 天 · 记录错题 <b>' + wrongTotal + '</b> 题' +
+        (fullDays >= 5 ? ' · 超棒，继续保持！🏆' : fullDays >= 3 ? ' · 不错哦，再接再厉！👍' : ' · 每天三步，稳稳得优～');
+    }
+  }
+
+  document.getElementById('weekPrev').addEventListener('click', () => { weekOffset++; renderWeek(); });
+  document.getElementById('weekNext').addEventListener('click', () => {
+    if (weekOffset > 0) { weekOffset--; renderWeek(); }
+  });
+
+  // 初始化
+  const d = new Date();
+  const week = ['日','一','二','三','四','五','六'];
+  document.getElementById('todayDate').textContent =
+    d.getFullYear() + ' 年 ' + (d.getMonth()+1) + ' 月 ' + d.getDate() + ' 日 · 星期' + week[d.getDay()];
+
+  renderSteps(); renderStats(); renderWrong();
+  initCalendar(); renderCalendar(); renderWeek();
+  document.getElementById('wrongDesc').addEventListener('keydown', e => { if (e.key === 'Enter') addWrong(); });
+</script>
+</body>
+</html>
